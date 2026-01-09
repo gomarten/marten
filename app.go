@@ -23,7 +23,7 @@ func New() *App {
 		Router: NewRouter(),
 		onError: func(c *Ctx, err error) {
 			if !c.written {
-				c.Text(http.StatusInternalServerError, "Internal Server Error")
+				_ = c.Text(http.StatusInternalServerError, "Internal Server Error")
 			}
 		},
 	}

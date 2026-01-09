@@ -1,13 +1,21 @@
-# Marten
+<p align="center">
+  <img src="assets/logo.png" alt="Marten" width="400">
+</p>
 
-The Go web framework you reach for when you want nothing in the way.
+<p align="center">
+  <strong>The Go web framework you reach for when you want nothing in the way.</strong>
+</p>
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/gomarten/marten.svg)](https://pkg.go.dev/github.com/gomarten/marten)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gomarten/marten)](https://goreportcard.com/report/github.com/gomarten/marten)
-[![CI](https://github.com/gomarten/marten/actions/workflows/ci.yml/badge.svg)](https://github.com/gomarten/marten/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/gomarten/marten)](https://go.dev/)
 
+<p align="center">
+  <a href="https://pkg.go.dev/github.com/gomarten/marten"><img src="https://pkg.go.dev/badge/github.com/gomarten/marten.svg" alt="Go Reference"></a>
+  <a href="https://goreportcard.com/report/github.com/gomarten/marten"><img src="https://goreportcard.com/badge/github.com/gomarten/marten" alt="Go Report Card"></a>
+  <a href="https://github.com/gomarten/marten/actions/workflows/ci.yml"><img src="https://github.com/gomarten/marten/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://go.dev/"><img src="https://img.shields.io/github/go-mod/go-version/gomarten/marten" alt="Go Version"></a>
+</p>
+
+---
 
 ## Features
 

@@ -37,7 +37,7 @@ func ETag(next marten.Handler) marten.Handler {
 
 			origWriter.Header().Set("ETag", etag)
 			origWriter.WriteHeader(ew.status)
-			origWriter.Write(ew.buf.Bytes())
+			_, _ = origWriter.Write(ew.buf.Bytes())
 			return err
 		}
 
@@ -45,7 +45,7 @@ func ETag(next marten.Handler) marten.Handler {
 			ew.status = http.StatusOK
 		}
 		origWriter.WriteHeader(ew.status)
-		origWriter.Write(ew.buf.Bytes())
+		_, _ = origWriter.Write(ew.buf.Bytes())
 		return err
 	}
 }

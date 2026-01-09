@@ -29,7 +29,8 @@ func NewRouter() *Router {
 			handlers: make(map[string]Handler),
 		},
 		notFound: func(c *Ctx) error {
-			return c.Text(http.StatusNotFound, "Not Found")
+			_ = c.Text(http.StatusNotFound, "Not Found")
+			return nil
 		},
 	}
 }

@@ -218,7 +218,7 @@ func (c *Ctx) RequestID() string {
 			c.requestID = id
 		} else {
 			b := make([]byte, 8)
-			rand.Read(b)
+			_, _ = rand.Read(b)
 			c.requestID = hex.EncodeToString(b)
 		}
 	}

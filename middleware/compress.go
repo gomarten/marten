@@ -124,7 +124,7 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 		w.gw.Reset(w.ResponseWriter)
 
 		if len(w.buf) > 0 {
-			w.gw.Write(w.buf)
+			_, _ = w.gw.Write(w.buf)
 			w.buf = nil
 		}
 	}
@@ -134,7 +134,7 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 	}
 
 	if len(w.buf) > 0 {
-		w.ResponseWriter.Write(w.buf)
+		_, _ = w.ResponseWriter.Write(w.buf)
 		w.buf = nil
 	}
 	return w.ResponseWriter.Write(b)

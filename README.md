@@ -4,7 +4,9 @@ The Go web framework you reach for when you want nothing in the way.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/gomarten/marten.svg)](https://pkg.go.dev/github.com/gomarten/marten)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gomarten/marten)](https://goreportcard.com/report/github.com/gomarten/marten)
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/gomarten/marten)
+[![CI](https://github.com/gomarten/marten/actions/workflows/ci.yml/badge.svg)](https://github.com/gomarten/marten/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/gomarten/marten)](https://go.dev/)
 
 
 ## Features

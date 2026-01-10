@@ -30,7 +30,7 @@ jobs:
       - name: Run tests
         run: |
           cd tests
-          go test -v -race -coverprofile=coverage.out ./...
+          go test -v -race ./...
 
       - name: Upload coverage
         if: matrix.go-version == '1.22'
@@ -38,6 +38,7 @@ jobs:
         with:
           files: tests/coverage.out
           fail_ci_if_error: false
+        continue-on-error: true
 
   lint:
     runs-on: ubuntu-latest

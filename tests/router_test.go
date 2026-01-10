@@ -131,8 +131,11 @@ func TestRouterMethodNotAllowed(t *testing.T) {
 	rec := httptest.NewRecorder()
 	app.ServeHTTP(rec, req)
 
-	if rec.Code != 404 {
-		t.Errorf("expected 404 for wrong method, got %d", rec.Code)
+	if rec.Code != 405 {
+		t.Errorf("expected 405 for wrong method, got %d", rec.Code)
+	}
+	if rec.Header().Get("Allow") == "" {
+		t.Error("expected Allow header for 405 response")
 	}
 }
 

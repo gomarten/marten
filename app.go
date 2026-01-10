@@ -43,15 +43,36 @@ func (a *App) OnError(fn func(*Ctx, error)) {
 	a.onError = fn
 }
 
+// SetTrailingSlash configures trailing slash handling.
+func (a *App) SetTrailingSlash(mode TrailingSlashMode) {
+	a.Router.SetTrailingSlash(mode)
+}
+
 // ServeHTTP implements http.Handler.
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := a.pool.Get().(*Ctx)
 	c.Reset(w, r)
 	defer a.pool.Put(c)
 
-	handler, routeMw := a.lookup(r.Method, r.URL.Path, c.params)
+	handler, routeMw, allowed, redirect := a.lookupWithTrailingSlash(r.Method, r.URL.Path, c.params)
+
+	// Handle trailing slash redirect
+	if redirect != "" {
+		w.Header().Set("Location", redirect)
+		w.WriteHeader(http.StatusMovedPermanently)
+		return
+	}
+
 	if handler == nil {
-		handler = a.notFound
+		if len(allowed) > 0 {
+			// Path exists but method not allowed
+			w.Header().Set("Allow", joinMethods(allowed))
+			handler = func(c *Ctx) error {
+				return c.Text(http.StatusMethodNotAllowed, "Method Not Allowed")
+			}
+		} else {
+			handler = a.notFound
+		}
 	}
 
 	// Apply route-specific middleware
@@ -67,6 +88,21 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := handler(c); err != nil {
 		a.onError(c, err)
 	}
+}
+
+// joinMethods joins method names with ", ".
+func joinMethods(methods []string) string {
+	if len(methods) == 0 {
+		return ""
+	}
+	if len(methods) == 1 {
+		return methods[0]
+	}
+	result := methods[0]
+	for _, m := range methods[1:] {
+		result += ", " + m
+	}
+	return result
 }
 
 // Run starts the server on the given address.

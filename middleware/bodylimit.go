@@ -18,10 +18,12 @@ const (
 func BodyLimit(maxSize int64) marten.Middleware {
 	return func(next marten.Handler) marten.Handler {
 		return func(c *marten.Ctx) error {
+			// Check Content-Length if available (skip for chunked encoding where ContentLength = -1)
 			if c.Request.ContentLength > maxSize {
 				return c.JSON(http.StatusRequestEntityTooLarge, marten.E("request body too large"))
 			}
 
+			// Always wrap body to enforce limit during read (handles chunked encoding)
 			c.Request.Body = &limitedReader{
 				reader:  c.Request.Body,
 				maxSize: maxSize,

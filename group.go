@@ -34,7 +34,10 @@ func (g *Group) Group(prefix string, mw ...Middleware) *Group {
 
 // Handle registers a route within the group.
 func (g *Group) Handle(method, path string, h Handler, mw ...Middleware) {
-	combined := append(g.middleware, mw...)
+	// Create new slice to avoid mutating original
+	combined := make([]Middleware, 0, len(g.middleware)+len(mw))
+	combined = append(combined, g.middleware...)
+	combined = append(combined, mw...)
 	g.router.Handle(method, g.prefix+path, h, combined...)
 }
 
@@ -61,4 +64,14 @@ func (g *Group) DELETE(path string, h Handler, mw ...Middleware) {
 // PATCH registers a PATCH route within the group.
 func (g *Group) PATCH(path string, h Handler, mw ...Middleware) {
 	g.Handle(http.MethodPatch, path, h, mw...)
+}
+
+// HEAD registers a HEAD route within the group.
+func (g *Group) HEAD(path string, h Handler, mw ...Middleware) {
+	g.Handle(http.MethodHead, path, h, mw...)
+}
+
+// OPTIONS registers an OPTIONS route within the group.
+func (g *Group) OPTIONS(path string, h Handler, mw ...Middleware) {
+	g.Handle(http.MethodOptions, path, h, mw...)
 }

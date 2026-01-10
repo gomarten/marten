@@ -56,17 +56,25 @@ func Compress(cfg CompressConfig) marten.Middleware {
 				return next(c)
 			}
 
+			origWriter := c.Writer
 			gw := &gzipResponseWriter{
-				ResponseWriter: c.Writer,
+				ResponseWriter: origWriter,
 				cfg:            cfg,
 			}
 			c.Writer = gw
 
 			err := next(c)
 
+			// Restore original writer
+			c.Writer = origWriter
+
+			// Flush any remaining buffered data
 			if gw.gw != nil {
 				gw.gw.Close()
 				gzipPool.Put(gw.gw)
+			} else if len(gw.buf) > 0 {
+				// Write buffered data that didn't reach MinSize
+				_, _ = origWriter.Write(gw.buf)
 			}
 
 			return err
@@ -141,10 +149,24 @@ func (w *gzipResponseWriter) Write(b []byte) (int, error) {
 }
 
 func (w *gzipResponseWriter) Flush() {
+	// Flush any buffered data without compression if under MinSize
+	if w.gw == nil && len(w.buf) > 0 {
+		_, _ = w.ResponseWriter.Write(w.buf)
+		w.buf = nil
+	}
 	if w.gw != nil {
 		w.gw.Flush()
 	}
 	if f, ok := w.ResponseWriter.(http.Flusher); ok {
 		f.Flush()
 	}
+}
+
+// Close flushes any remaining buffered data.
+func (w *gzipResponseWriter) Close() error {
+	if w.gw == nil && len(w.buf) > 0 {
+		_, _ = w.ResponseWriter.Write(w.buf)
+		w.buf = nil
+	}
+	return nil
 }

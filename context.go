@@ -5,8 +5,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -349,6 +351,60 @@ func (c *Ctx) File(name string) (*multipart.FileHeader, error) {
 func (c *Ctx) Header(key, value string) *Ctx {
 	c.Writer.Header().Set(key, value)
 	return c
+}
+
+// GetHeader returns a request header value.
+func (c *Ctx) GetHeader(key string) string {
+	return c.Request.Header.Get(key)
+}
+
+// Written returns true if the response has been written.
+func (c *Ctx) Written() bool {
+	return c.written
+}
+
+// HTML writes an HTML response.
+func (c *Ctx) HTML(code int, html string) error {
+	if !c.written {
+		c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+		c.Writer.WriteHeader(code)
+		c.written = true
+		c.statusCode = code
+	}
+	_, err := c.Writer.Write([]byte(html))
+	return err
+}
+
+// Blob writes a binary response with the given content type.
+func (c *Ctx) Blob(code int, contentType string, data []byte) error {
+	if !c.written {
+		c.Writer.Header().Set("Content-Type", contentType)
+		c.Writer.WriteHeader(code)
+		c.written = true
+		c.statusCode = code
+	}
+	_, err := c.Writer.Write(data)
+	return err
+}
+
+// Stream writes data from a reader to the response.
+func (c *Ctx) Stream(code int, contentType string, r io.Reader) error {
+	if !c.written {
+		c.Writer.Header().Set("Content-Type", contentType)
+		c.Writer.WriteHeader(code)
+		c.written = true
+		c.statusCode = code
+	}
+	_, err := io.Copy(c.Writer, r)
+	return err
+}
+
+// QueryParams returns all query parameters.
+func (c *Ctx) QueryParams() url.Values {
+	if c.Request.URL == nil {
+		return url.Values{}
+	}
+	return c.Request.URL.Query()
 }
 
 // SetParam sets a path parameter (used internally by router).

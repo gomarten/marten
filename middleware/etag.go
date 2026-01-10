@@ -35,6 +35,10 @@ func ETag(next marten.Handler) marten.Handler {
 				return nil
 			}
 
+			// Copy headers from buffered writer to original
+			for k, v := range ew.Header() {
+				origWriter.Header()[k] = v
+			}
 			origWriter.Header().Set("ETag", etag)
 			origWriter.WriteHeader(ew.status)
 			_, _ = origWriter.Write(ew.buf.Bytes())
@@ -43,6 +47,10 @@ func ETag(next marten.Handler) marten.Handler {
 
 		if ew.status == 0 {
 			ew.status = http.StatusOK
+		}
+		// Copy headers from buffered writer to original
+		for k, v := range ew.Header() {
+			origWriter.Header()[k] = v
 		}
 		origWriter.WriteHeader(ew.status)
 		_, _ = origWriter.Write(ew.buf.Bytes())

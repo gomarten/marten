@@ -1,0 +1,20 @@
+{{define "content"}}
+<div class="logo">
+    <img src="/public/gopher.svg" alt="Gopher" style="width: 80px; height: 80px;">
+</div>
+<h1>Gopher Notes</h1>
+<p class="subtitle">A simple note-taking app built with Marten</p>
+
+<div class="fortune-box">
+    "{{.Fortune}}"
+</div>
+
+<div class="flex mt-1">
+    <a href="/login" class="btn flex-1" style="text-align:center">Login</a>
+    <a href="/register" class="btn btn-secondary flex-1" style="text-align:center">Register</a>
+</div>
+
+<div class="links">
+    <a href="/api-docs">API Documentation</a>
+</div>
+{{end}}

@@ -1,0 +1,56 @@
+{{define "content"}}
+<nav class="nav">
+    <a href="/dashboard" class="nav-brand">
+        <img src="/public/gopher.svg" alt="Gopher" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 0.5rem;">
+        Gopher Notes
+    </a>
+    <div class="nav-links">
+        <span>Hi, {{.Username}}</span>
+        <a href="/logout">Logout</a>
+    </div>
+</nav>
+
+{{if .Success}}
+<div class="alert alert-success">{{.Success}}</div>
+{{end}}
+
+<h2>Your Notes</h2>
+
+{{if .Notes}}
+<ul class="notes-list">
+    {{range .Notes}}
+    <li class="note-item">
+        <div class="note-title">{{.Title}}</div>
+        {{if .Content}}<div class="note-content">{{.Content}}</div>{{end}}
+        <div class="note-meta">{{.CreatedAt.Format "Jan 2, 2006 3:04 PM"}}</div>
+        <div class="note-actions">
+            <form method="POST" action="/notes/{{.ID}}/delete" style="display: inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </div>
+    </li>
+    {{end}}
+</ul>
+{{else}}
+<div class="empty-state">
+    <p>No notes yet. Create your first note below!</p>
+</div>
+{{end}}
+
+<hr>
+
+<h2>New Note</h2>
+<form method="POST" action="/notes">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required placeholder="What's on your mind?">
+    </div>
+    
+    <div class="form-group">
+        <label for="content">Content (optional)</label>
+        <textarea id="content" name="content" placeholder="Write your note here..."></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Save Note</button>
+</form>
+{{end}}

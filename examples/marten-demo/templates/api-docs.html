@@ -1,0 +1,63 @@
+{{define "content"}}
+<nav class="nav">
+    <a href="/" class="nav-brand">
+        <img src="/public/gopher.svg" alt="Gopher" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 0.5rem;">
+        Gopher Notes
+    </a>
+    <div class="nav-links">
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+    </div>
+</nav>
+
+<h1 style="text-align:left">API Documentation</h1>
+<p class="subtitle" style="text-align:left">REST API for Gopher Notes</p>
+
+<h2>Authentication</h2>
+
+<div class="note-item">
+    <div class="note-title">POST /auth/register</div>
+    <pre>curl -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "gopher", "password": "secret123"}'</pre>
+</div>
+
+<div class="note-item">
+    <div class="note-title">POST /auth/login</div>
+    <pre>curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "gopher", "password": "secret123"}'</pre>
+</div>
+
+<h2 class="mt-1">Notes (Requires Auth)</h2>
+
+<div class="note-item">
+    <div class="note-title">GET /api/notes</div>
+    <pre>curl http://localhost:8080/api/notes \
+  -H "Authorization: Bearer YOUR_TOKEN"</pre>
+</div>
+
+<div class="note-item">
+    <div class="note-title">POST /api/notes</div>
+    <pre>curl -X POST http://localhost:8080/api/notes \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "My Note", "content": "Hello!"}'</pre>
+</div>
+
+<h2 class="mt-1">Fun Endpoints</h2>
+
+<div class="note-item">
+    <div class="note-title">GET /fortune</div>
+    <div class="note-content">Get a random Go fortune</div>
+</div>
+
+<div class="note-item">
+    <div class="note-title">GET /gopher</div>
+    <div class="note-content">ASCII art gopher</div>
+</div>
+
+<div class="links mt-1">
+    <a href="/">← Back to Home</a>
+</div>
+{{end}}

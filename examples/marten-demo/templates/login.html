@@ -1,0 +1,29 @@
+{{define "content"}}
+<div class="logo">
+    <img src="/public/gopher.svg" alt="Gopher" style="width: 60px; height: 60px;">
+</div>
+<h1>Welcome Back</h1>
+<p class="subtitle">Login to your account</p>
+
+{{if .Error}}
+<div class="alert alert-error">{{.Error}}</div>
+{{end}}
+
+<form method="POST" action="/login">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autofocus>
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    
+    <button type="submit" class="btn btn-block">Login</button>
+</form>
+
+<div class="links">
+    Don't have an account? <a href="/register">Register</a>
+</div>
+{{end}}

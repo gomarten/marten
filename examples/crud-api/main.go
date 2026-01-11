@@ -18,7 +18,7 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// In-memory store (use a real database in production)
+// In-memory store
 var (
 	users   = make(map[string]User)
 	usersMu sync.RWMutex

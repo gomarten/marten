@@ -1,4 +1,4 @@
-module error-handling
+module marten-demo
 
 go 1.22
 

@@ -33,12 +33,14 @@ func main() {
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 	}))
 
-	// CORS
+	// CORS with ExposeHeaders and MaxAge (v0.1.1)
 	app.Use(middleware.CORS(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://example.com", "https://app.example.com"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"X-Request-ID", "X-RateLimit-Remaining"},
 		AllowCredentials: true,
+		MaxAge:           86400, // 24 hours
 	}))
 
 	// Body size limit (10MB)
@@ -61,12 +63,16 @@ func main() {
 		})
 	})
 
-	// Rate limited endpoint
-	limited := app.Group("/api")
-	limited.Use(middleware.RateLimit(middleware.RateLimitConfig{
+	// Rate limited endpoint using NewRateLimiter (v0.1.1)
+	// NewRateLimiter allows proper cleanup with Stop()
+	rateLimiter := middleware.NewRateLimiter(middleware.RateLimitConfig{
 		Requests: 10,
 		Window:   time.Minute,
-	}))
+	})
+	defer rateLimiter.Stop() // Clean up goroutine on shutdown
+
+	limited := app.Group("/api")
+	limited.Use(rateLimiter.Middleware())
 	limited.GET("/limited", func(c *marten.Ctx) error {
 		return c.OK(marten.M{"message": "This endpoint is rate limited"})
 	})

@@ -1,0 +1,33 @@
+{{define "content"}}
+<div class="logo">
+    <img src="/public/gopher.svg" alt="Gopher" style="width: 60px; height: 60px;">
+</div>
+<h1>Create Account</h1>
+<p class="subtitle">Join Gopher Notes today</p>
+
+{{if .Error}}
+<div class="alert alert-error">{{.Error}}</div>
+{{end}}
+
+<form method="POST" action="/register">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autofocus 
+               minlength="3" maxlength="32" pattern="[a-zA-Z0-9_]+"
+               placeholder="Letters, numbers, underscores only">
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required 
+               minlength="8" maxlength="128"
+               placeholder="Min 8 chars, uppercase, lowercase, number">
+    </div>
+    
+    <button type="submit" class="btn btn-block">Create Account</button>
+</form>
+
+<div class="links">
+    Already have an account? <a href="/login">Login</a>
+</div>
+{{end}}

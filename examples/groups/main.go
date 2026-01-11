@@ -72,23 +72,10 @@ func main() {
 
 	log.Println("Groups example running on http://localhost:3000")
 	log.Println("")
-	log.Println("Routes:")
-	log.Println("  GET  /")
-	log.Println("  GET  /health")
-	log.Println("  GET  /api/v1/users")
-	log.Println("  GET  /api/v1/users/:id")
-	log.Println("  POST /api/v1/users")
-	log.Println("  GET  /api/v1/users/:id/posts")
-	log.Println("  GET  /api/v1/posts")
-	log.Println("  GET  /api/v1/posts/:id")
-	log.Println("  GET  /api/v2/users")
-	log.Println("  GET  /api/v2/users/:id")
-	log.Println("  GET  /admin/dashboard (basic auth)")
-	log.Println("  GET  /admin/stats (basic auth)")
-	log.Println("  GET  /admin/users (basic auth)")
-	log.Println("  DELETE /admin/users/:id (basic auth)")
-	log.Println("  POST /webhooks/github")
-	log.Println("  POST /webhooks/stripe")
+	log.Println("Registered routes:")
+	for _, r := range app.Routes() {
+		log.Printf("  %-6s %s", r.Method, r.Path)
+	}
 
 	app.Run(":3000")
 }

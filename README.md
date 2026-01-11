@@ -169,10 +169,8 @@ Full documentation available at [gomarten.github.io/docs](https://gomarten.githu
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Community & Discussions
-
-Have a question, idea, or something you’d like to talk through before opening an issue?
-Join the conversation here:  
-https://github.com/gomarten/marten/discussions
+Questions or ideas?  
+Join the discussion: https://github.com/gomarten/marten/discussions
 
 ## License
 

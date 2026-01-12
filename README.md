@@ -160,6 +160,18 @@ app.OnError(func(c *marten.Ctx, err error) {
 app.RunGraceful(":8080", 10*time.Second)
 ```
 
+## Benchmarks
+
+Marten performs on par with Gin and Echo while maintaining zero dependencies.
+
+| Benchmark | Marten | Gin | Echo | Chi |
+|-----------|--------|-----|------|-----|
+| Static Route | 1464 ns/op | 1336 ns/op | 1436 ns/op | 2202 ns/op |
+| Param Route | 1564 ns/op | 1418 ns/op | 1472 ns/op | 2559 ns/op |
+| JSON Response | 1755 ns/op | 2050 ns/op | 1835 ns/op | 1868 ns/op |
+
+See [benchmarks/](benchmarks/) for full comparison with Gin, Echo, Chi, and Fiber.
+
 ## Documentation
 
 Full documentation available at [gomarten.github.io/docs](https://gomarten.github.io/docs)

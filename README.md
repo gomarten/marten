@@ -17,6 +17,21 @@
 
 Marten is a lightweight HTTP framework built entirely on Go's standard library. No external dependencies. No magic. Just clean, predictable code that gets out of your way.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Routing](#routing)
+- [Middleware](#middleware)
+- [Context API](#context-api)
+- [Configuration](#configuration)
+- [Benchmarks](#benchmarks)
+- [Examples](#examples)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ```bash
@@ -170,7 +185,20 @@ Marten performs on par with Gin and Echo while maintaining zero dependencies.
 | Param Route | 1564 ns/op | 1418 ns/op | 1472 ns/op | 2559 ns/op |
 | JSON Response | 1755 ns/op | 2050 ns/op | 1835 ns/op | 1868 ns/op |
 
-See [benchmarks/](benchmarks/) for full comparison with Gin, Echo, Chi, and Fiber.
+See [benchmarks/](benchmarks/) for full comparison with Gin, Echo, Chi and Fiber.
+
+## Examples
+
+| Example | Description |
+|---------|-------------|
+| [basic](examples/basic/) | Hello World, JSON, path and query params |
+| [crud-api](examples/crud-api/) | RESTful API with validation |
+| [auth-jwt](examples/auth-jwt/) | JWT authentication |
+| [middleware](examples/middleware/) | Built-in and custom middleware |
+| [groups](examples/groups/) | Route groups and versioning |
+| [error-handling](examples/error-handling/) | Custom error types and handlers |
+| [file-server](examples/file-server/) | Static files and SPA fallback |
+| [marten-demo](examples/marten-demo/) | Full web app with auth and templates |
 
 ## Documentation
 

@@ -1,5 +1,5 @@
-// Marten Framework Benchmarks
-// Comparing Marten with Gin, Echo, Chi, and Fiber
+// Marten Go Framework Benchmarks
+// Comparing Marten with Gin, Echo, Chi and Fiber
 package main
 
 import (

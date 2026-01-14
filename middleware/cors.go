@@ -52,6 +52,17 @@ func CORS(cfg CORSConfig) marten.Middleware {
 					allowed = true
 					break
 				}
+				// Wildcard subdomain support (e.g., *.example.com)
+				if strings.HasPrefix(o, "*.") && len(origin) > 0 {
+					suffix := o[1:] // .example.com
+					if strings.HasSuffix(origin, suffix) {
+						// Check it's a valid subdomain (has scheme prefix)
+						if strings.HasPrefix(origin, "http://") || strings.HasPrefix(origin, "https://") {
+							allowed = true
+							break
+						}
+					}
+				}
 			}
 
 			if allowed {

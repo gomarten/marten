@@ -12,10 +12,11 @@ import (
 
 // RateLimitConfig configures the rate limiter.
 type RateLimitConfig struct {
-	Requests int                           // Max requests per window
-	Window   time.Duration                 // Time window
-	KeyFunc  func(*marten.Ctx) string      // Extract key (default: ClientIP)
-	Skip     func(*marten.Ctx) bool        // Skip rate limiting for certain requests
+	Requests    int                           // Max requests per window
+	Window      time.Duration                 // Time window
+	KeyFunc     func(*marten.Ctx) string      // Extract key (default: ClientIP)
+	Skip        func(*marten.Ctx) bool        // Skip rate limiting for certain requests
+	OnLimitReached func(*marten.Ctx) error    // Custom response when limit is reached
 }
 
 // DefaultRateLimitConfig returns sensible defaults.
@@ -118,6 +119,9 @@ func (rl *RateLimiter) Middleware() marten.Middleware {
 			if b.remaining <= 0 {
 				rl.mu.Unlock()
 				c.Header("Retry-After", strconv.FormatInt(int64(time.Until(b.reset).Seconds()), 10))
+				if rl.cfg.OnLimitReached != nil {
+					return rl.cfg.OnLimitReached(c)
+				}
 				return c.JSON(http.StatusTooManyRequests, marten.E("rate limit exceeded"))
 			}
 

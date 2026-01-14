@@ -185,13 +185,66 @@ func (c *Ctx) Context() context.Context {
 	return c.Request.Context()
 }
 
-// Bind decodes JSON request body into v.
+// Bind decodes request body into v based on Content-Type.
+// Supports application/json, application/x-www-form-urlencoded, and multipart/form-data.
 func (c *Ctx) Bind(v any) error {
 	if c.Request.Body == nil {
 		return &BindError{Message: "empty request body"}
 	}
-	if err := json.NewDecoder(c.Request.Body).Decode(v); err != nil {
-		return &BindError{Message: "invalid JSON: " + err.Error()}
+
+	contentType := c.Request.Header.Get("Content-Type")
+
+	switch {
+	case strings.HasPrefix(contentType, "application/json"):
+		if err := json.NewDecoder(c.Request.Body).Decode(v); err != nil {
+			if err.Error() == "EOF" {
+				return &BindError{Message: "empty request body"}
+			}
+			return &BindError{Message: "invalid JSON: " + err.Error()}
+		}
+		return nil
+
+	case strings.HasPrefix(contentType, "application/x-www-form-urlencoded"):
+		if err := c.Request.ParseForm(); err != nil {
+			return &BindError{Message: "invalid form data: " + err.Error()}
+		}
+		return bindForm(c.Request.Form, v)
+
+	case strings.HasPrefix(contentType, "multipart/form-data"):
+		if err := c.Request.ParseMultipartForm(32 << 20); err != nil { // 32MB max
+			return &BindError{Message: "invalid multipart data: " + err.Error()}
+		}
+		return bindForm(c.Request.Form, v)
+
+	default:
+		// Default to JSON for backwards compatibility
+		if err := json.NewDecoder(c.Request.Body).Decode(v); err != nil {
+			if err.Error() == "EOF" {
+				return &BindError{Message: "empty request body"}
+			}
+			return &BindError{Message: "invalid JSON: " + err.Error()}
+		}
+		return nil
+	}
+}
+
+// bindForm binds form values to a struct using json tags.
+func bindForm(form url.Values, v any) error {
+	// Use JSON marshal/unmarshal for simplicity
+	data := make(map[string]any)
+	for key, values := range form {
+		if len(values) == 1 {
+			data[key] = values[0]
+		} else {
+			data[key] = values
+		}
+	}
+	b, err := json.Marshal(data)
+	if err != nil {
+		return &BindError{Message: "form binding error: " + err.Error()}
+	}
+	if err := json.Unmarshal(b, v); err != nil {
+		return &BindError{Message: "form binding error: " + err.Error()}
 	}
 	return nil
 }
@@ -419,10 +472,19 @@ func (c *Ctx) Reset(w http.ResponseWriter, r *http.Request) {
 	c.written = false
 	c.statusCode = 0
 	c.requestID = ""
+	// Clear params map
 	for k := range c.params {
 		delete(c.params, k)
 	}
+	// Clear store map
 	for k := range c.store {
 		delete(c.store, k)
+	}
+	// Ensure maps are initialized
+	if c.params == nil {
+		c.params = make(map[string]string)
+	}
+	if c.store == nil {
+		c.store = make(map[string]any)
 	}
 }

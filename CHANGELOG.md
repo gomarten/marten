@@ -2,6 +2,31 @@
 
 All notable changes to Marten.
 
+## [0.1.2] - 2026-01-14
+
+### Added
+
+- `OnStart()` and `OnShutdown()` lifecycle hooks for App
+- `LoggerConfig.EnableColors` for colored terminal output
+- `LoggerConfig.JSONFormat` for JSON-formatted logs
+- `RecoverWithConfig()` with custom panic handler
+- `RecoverWithHandler()` convenience function
+- `RecoverJSON` middleware for JSON error responses
+- `RateLimitConfig.OnLimitReached` for custom rate limit responses
+- CORS wildcard subdomain support (e.g., `*.example.com`)
+- `Bind()` now supports `application/x-www-form-urlencoded`
+- `Bind()` now supports `multipart/form-data`
+
+### Fixed
+
+- Context pool reset now ensures all fields are cleared between requests
+- `Bind()` now returns error for empty request body
+- `Bind()` now checks Content-Type header before parsing
+
+### Changed
+
+- `DefaultLoggerConfig()` no longer sets a default Format function
+
 ## [0.1.1] - 2026-01-09
 
 ### Added

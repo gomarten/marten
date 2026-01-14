@@ -12,16 +12,26 @@ import (
 func main() {
 	app := marten.New()
 
+	// --- Lifecycle Hooks (v0.1.2) ---
+	app.OnStart(func() {
+		log.Println("Server starting up...")
+	})
+	app.OnShutdown(func() {
+		log.Println("Server shutting down, cleaning up...")
+	})
+
 	// --- Built-in Middleware ---
 
 	// Request ID - adds unique ID to each request
 	app.Use(middleware.RequestID)
 
-	// Logger - logs method, path, status, duration
-	app.Use(middleware.Logger)
+	// Logger with colored output (v0.1.2)
+	app.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		EnableColors: true,
+	}))
 
-	// Recover - catches panics and returns 500
-	app.Use(middleware.Recover)
+	// Recover with JSON response (v0.1.2)
+	app.Use(middleware.RecoverJSON)
 
 	// Security headers
 	app.Use(middleware.Secure(middleware.SecureConfig{
@@ -33,9 +43,9 @@ func main() {
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 	}))
 
-	// CORS with ExposeHeaders and MaxAge (v0.1.1)
+	// CORS with wildcard subdomain support (v0.1.2)
 	app.Use(middleware.CORS(middleware.CORSConfig{
-		AllowOrigins:     []string{"https://example.com", "https://app.example.com"},
+		AllowOrigins:     []string{"*.example.com", "http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"X-Request-ID", "X-RateLimit-Remaining"},
@@ -63,11 +73,16 @@ func main() {
 		})
 	})
 
-	// Rate limited endpoint using NewRateLimiter (v0.1.1)
-	// NewRateLimiter allows proper cleanup with Stop()
+	// Rate limited endpoint with custom response (v0.1.2)
 	rateLimiter := middleware.NewRateLimiter(middleware.RateLimitConfig{
 		Requests: 10,
 		Window:   time.Minute,
+		OnLimitReached: func(c *marten.Ctx) error {
+			return c.JSON(429, marten.M{
+				"error":   "rate_limit_exceeded",
+				"message": "Too many requests, please slow down",
+			})
+		},
 	})
 	defer rateLimiter.Stop() // Clean up goroutine on shutdown
 
@@ -77,9 +92,26 @@ func main() {
 		return c.OK(marten.M{"message": "This endpoint is rate limited"})
 	})
 
+	// Form binding endpoint (v0.1.2 - supports form-urlencoded)
+	app.POST("/form", func(c *marten.Ctx) error {
+		var data struct {
+			Name  string `json:"name"`
+			Email string `json:"email"`
+		}
+		if err := c.Bind(&data); err != nil {
+			return c.BadRequest(err.Error())
+		}
+		return c.OK(marten.M{"received": data})
+	})
+
 	// Protected endpoint with basic auth
 	admin := app.Group("/admin")
-	admin.Use(middleware.BasicAuthSimple("admin", "secret123"))
+	admin.Use(middleware.BasicAuth(middleware.BasicAuthConfig{
+		Realm: "Admin Area",
+		Validate: func(user, pass string) bool {
+			return user == "admin" && pass == "secret123"
+		},
+	}))
 	admin.GET("/dashboard", func(c *marten.Ctx) error {
 		user := c.GetString("user")
 		return c.OK(marten.M{
@@ -88,9 +120,17 @@ func main() {
 		})
 	})
 
-	// Timeout endpoint
+	// Timeout endpoint with custom response (v0.1.2)
 	slow := app.Group("/slow")
-	slow.Use(middleware.Timeout(2 * time.Second))
+	slow.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
+		Timeout: 2 * time.Second,
+		OnTimeout: func(c *marten.Ctx) error {
+			return c.JSON(504, marten.M{
+				"error":   "timeout",
+				"message": "Request took too long",
+			})
+		},
+	}))
 	slow.GET("/task", func(c *marten.Ctx) error {
 		// Simulate slow operation
 		select {
@@ -121,7 +161,13 @@ func main() {
 		})
 	})
 
+	// Panic endpoint to test RecoverJSON
+	app.GET("/panic", func(c *marten.Ctx) error {
+		panic("intentional panic for testing")
+	})
+
 	log.Println("Middleware example running on http://localhost:3000")
+	log.Println("Try: GET /, POST /form, GET /api/limited, GET /panic")
 	app.Run(":3000")
 }
 

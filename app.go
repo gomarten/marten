@@ -13,8 +13,10 @@ import (
 // App is the core of Marten.
 type App struct {
 	*Router
-	pool    sync.Pool
-	onError func(*Ctx, error)
+	pool       sync.Pool
+	onError    func(*Ctx, error)
+	onStart    []func()
+	onShutdown []func()
 }
 
 // New creates a new Marten application.
@@ -41,6 +43,16 @@ func New() *App {
 // OnError sets a custom error handler.
 func (a *App) OnError(fn func(*Ctx, error)) {
 	a.onError = fn
+}
+
+// OnStart registers a callback to run when the server starts.
+func (a *App) OnStart(fn func()) {
+	a.onStart = append(a.onStart, fn)
+}
+
+// OnShutdown registers a callback to run when the server shuts down.
+func (a *App) OnShutdown(fn func()) {
+	a.onShutdown = append(a.onShutdown, fn)
 }
 
 // SetTrailingSlash configures trailing slash handling.
@@ -107,6 +119,11 @@ func joinMethods(methods []string) string {
 
 // Run starts the server on the given address.
 func (a *App) Run(addr string) error {
+	// Run OnStart callbacks
+	for _, fn := range a.onStart {
+		fn()
+	}
+
 	server := &http.Server{
 		Addr:    addr,
 		Handler: a,
@@ -119,6 +136,11 @@ func (a *App) RunGraceful(addr string, timeout time.Duration) error {
 	server := &http.Server{
 		Addr:    addr,
 		Handler: a,
+	}
+
+	// Run OnStart callbacks
+	for _, fn := range a.onStart {
+		fn()
 	}
 
 	done := make(chan error, 1)
@@ -135,6 +157,11 @@ func (a *App) RunGraceful(addr string, timeout time.Duration) error {
 			return err
 		}
 	case <-quit:
+		// Run OnShutdown callbacks
+		for _, fn := range a.onShutdown {
+			fn()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		return server.Shutdown(ctx)

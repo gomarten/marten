@@ -1,6 +1,9 @@
 package marten
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 // Group represents a route group with shared prefix and middleware.
 type Group struct {
@@ -11,6 +14,10 @@ type Group struct {
 
 // Group creates a new route group with the given prefix.
 func (r *Router) Group(prefix string, mw ...Middleware) *Group {
+	// Normalize prefix: remove trailing slash
+	if len(prefix) > 1 && strings.HasSuffix(prefix, "/") {
+		prefix = strings.TrimSuffix(prefix, "/")
+	}
 	return &Group{
 		prefix:     prefix,
 		middleware: mw,
@@ -25,6 +32,10 @@ func (g *Group) Use(mw ...Middleware) {
 
 // Group creates a nested group.
 func (g *Group) Group(prefix string, mw ...Middleware) *Group {
+	// Normalize prefix: remove trailing slash
+	if len(prefix) > 1 && strings.HasSuffix(prefix, "/") {
+		prefix = strings.TrimSuffix(prefix, "/")
+	}
 	return &Group{
 		prefix:     g.prefix + prefix,
 		middleware: append(g.middleware, mw...),
@@ -38,7 +49,14 @@ func (g *Group) Handle(method, path string, h Handler, mw ...Middleware) {
 	combined := make([]Middleware, 0, len(g.middleware)+len(mw))
 	combined = append(combined, g.middleware...)
 	combined = append(combined, mw...)
-	g.router.Handle(method, g.prefix+path, h, combined...)
+	
+	// Ensure path starts with / when combining with prefix
+	fullPath := g.prefix + path
+	if !strings.HasPrefix(path, "/") && g.prefix != "" {
+		fullPath = g.prefix + "/" + path
+	}
+	
+	g.router.Handle(method, fullPath, h, combined...)
 }
 
 // GET registers a GET route within the group.

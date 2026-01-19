@@ -216,8 +216,26 @@ func (r *Router) lookup(method string, path string, params map[string]string) (H
 		}
 	}
 
+	// Check if we have a handler at current node
 	if h, ok := current.handlers[method]; ok {
 		return h, current.mw, nil
+	}
+
+	// If no handler but we have a wildcard child, try matching with empty wildcard
+	if current.wildcard != nil {
+		wildcardName := current.wildcard.path[1:]
+		params[wildcardName] = ""
+		if h, ok := current.wildcard.handlers[method]; ok {
+			return h, current.wildcard.mw, nil
+		}
+		// Check for allowed methods on wildcard
+		if len(current.wildcard.handlers) > 0 {
+			allowed := make([]string, 0, len(current.wildcard.handlers))
+			for m := range current.wildcard.handlers {
+				allowed = append(allowed, m)
+			}
+			return nil, nil, allowed
+		}
 	}
 
 	// Path matched but method didn't - collect allowed methods

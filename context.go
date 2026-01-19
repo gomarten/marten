@@ -448,6 +448,9 @@ func (c *Ctx) Stream(code int, contentType string, r io.Reader) error {
 		c.written = true
 		c.statusCode = code
 	}
+	if r == nil {
+		return nil
+	}
 	_, err := io.Copy(c.Writer, r)
 	return err
 }

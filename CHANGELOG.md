@@ -2,6 +2,37 @@
 
 All notable changes to Marten.
 
+## [0.1.3] - 2026-01-18
+
+### Added
+
+- **Static file serving middleware** - `middleware.Static()` for serving static files with features:
+  - Automatic content-type detection
+  - Directory index serving (index.html)
+  - Directory browsing (optional)
+  - If-Modified-Since caching support
+  - Directory traversal prevention
+  - Configurable URL prefix
+  - Custom 404 handlers
+  - HEAD request support
+- 75 comprehensive test cases (325 total) covering edge cases, stress scenarios, and integration workflows
+
+### Fixed
+
+- **Router**: Fixed wildcard routes not matching when accessed with trailing slash (e.g., `/files/` now correctly matches `/files/*filepath` with empty filepath parameter)
+- **Router**: Fixed group prefix trailing slash normalization - groups created with trailing slash (e.g., `app.Group("/api/")`) now route correctly
+- **Router**: Fixed group path concatenation - paths without leading slash (e.g., `api.GET("users", ...)`) now properly combine with group prefix
+- **Context**: Fixed `Stream()` panic when nil reader is provided - now handles gracefully by writing headers only
+- **Middleware**: Fixed timeout middleware race condition when handler writes response after timeout - handlers now properly check context cancellation
+
+### Improved
+
+- Better path normalization in group prefixes
+- More robust wildcard route matching
+- Enhanced test coverage across router, context, middleware, and concurrent operations
+- Added stress tests for high concurrency (1,000+ requests) and memory management (10,000+ requests)
+- Added integration tests for real-world workflows (CRUD, auth, file uploads)
+
 ## [0.1.2] - 2026-01-14
 
 ### Added

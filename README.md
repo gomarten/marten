@@ -73,7 +73,7 @@ func main() {
 |---------|-------------|
 | Zero Dependencies | Built entirely on Go's standard library |
 | Fast Routing | Radix tree router with path parameters and wildcards |
-| Middleware | Chainable middleware with 13 built-in options |
+| Middleware | Chainable middleware with 14 built-in options |
 | Context Pooling | Efficient memory reuse for high throughput |
 | Response Helpers | `OK()`, `Created()`, `BadRequest()`, `NotFound()`, and more |
 | Typed Parameters | `ParamInt()`, `QueryInt()`, `QueryBool()` |
@@ -120,6 +120,7 @@ app.Use(middleware.RequestID)        // Request ID injection
 app.Use(middleware.BodyLimit(1*middleware.MB))
 app.Use(middleware.ETag)             // ETag caching
 app.Use(middleware.NoCache)          // Cache prevention
+app.Use(middleware.Static("./public")) // Static file serving
 ```
 
 Route-specific middleware:

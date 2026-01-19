@@ -488,8 +488,13 @@ func TestTimeoutMiddlewareSlow(t *testing.T) {
 	app := marten.New()
 	app.Use(middleware.Timeout(50 * time.Millisecond))
 	app.GET("/slow", func(c *marten.Ctx) error {
-		time.Sleep(100 * time.Millisecond)
-		return c.Text(200, "completed")
+		select {
+		case <-time.After(100 * time.Millisecond):
+			return c.Text(200, "completed")
+		case <-c.Context().Done():
+			// Context cancelled, don't write response
+			return nil
+		}
 	})
 
 	req := httptest.NewRequest("GET", "/slow", nil)

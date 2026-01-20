@@ -474,3 +474,308 @@ func BenchmarkFiber_MultiParam(b *testing.B) {
 		app.Test(req, -1)
 	}
 }
+
+// ============================================================================
+// QUERY PARAMS BENCHMARKS
+// ============================================================================
+
+func BenchmarkMarten_QueryParams(b *testing.B) {
+	app := marten.New()
+	app.GET("/search", func(c *marten.Ctx) error {
+		q := c.Query("q")
+		page := c.QueryInt("page")
+		limit := c.QueryInt("limit")
+		return c.JSON(200, marten.M{"q": q, "page": page, "limit": limit})
+	})
+
+	req := httptest.NewRequest("GET", "/search?q=golang&page=1&limit=10", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkGin_QueryParams(b *testing.B) {
+	app := gin.New()
+	app.GET("/search", func(c *gin.Context) {
+		q := c.Query("q")
+		page := c.Query("page")
+		limit := c.Query("limit")
+		c.JSON(200, gin.H{"q": q, "page": page, "limit": limit})
+	})
+
+	req := httptest.NewRequest("GET", "/search?q=golang&page=1&limit=10", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkEcho_QueryParams(b *testing.B) {
+	app := echo.New()
+	app.GET("/search", func(c echo.Context) error {
+		q := c.QueryParam("q")
+		page := c.QueryParam("page")
+		limit := c.QueryParam("limit")
+		return c.JSON(200, map[string]string{"q": q, "page": page, "limit": limit})
+	})
+
+	req := httptest.NewRequest("GET", "/search?q=golang&page=1&limit=10", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+// ============================================================================
+// LARGE JSON RESPONSE BENCHMARKS
+// ============================================================================
+
+type largeUser struct {
+	ID        int      `json:"id"`
+	Name      string   `json:"name"`
+	Email     string   `json:"email"`
+	Age       int      `json:"age"`
+	Address   string   `json:"address"`
+	City      string   `json:"city"`
+	Country   string   `json:"country"`
+	Phone     string   `json:"phone"`
+	Company   string   `json:"company"`
+	Tags      []string `json:"tags"`
+	Active    bool     `json:"active"`
+	CreatedAt string   `json:"created_at"`
+}
+
+var largeUserData = largeUser{
+	ID:        1,
+	Name:      "John Doe",
+	Email:     "john@example.com",
+	Age:       30,
+	Address:   "123 Main St",
+	City:      "New York",
+	Country:   "USA",
+	Phone:     "+1234567890",
+	Company:   "Acme Corp",
+	Tags:      []string{"developer", "golang", "backend", "api"},
+	Active:    true,
+	CreatedAt: "2024-01-01T00:00:00Z",
+}
+
+func BenchmarkMarten_LargeJSON(b *testing.B) {
+	app := marten.New()
+	app.GET("/user", func(c *marten.Ctx) error {
+		return c.JSON(200, largeUserData)
+	})
+
+	req := httptest.NewRequest("GET", "/user", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkGin_LargeJSON(b *testing.B) {
+	app := gin.New()
+	app.GET("/user", func(c *gin.Context) {
+		c.JSON(200, largeUserData)
+	})
+
+	req := httptest.NewRequest("GET", "/user", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkEcho_LargeJSON(b *testing.B) {
+	app := echo.New()
+	app.GET("/user", func(c echo.Context) error {
+		return c.JSON(200, largeUserData)
+	})
+
+	req := httptest.NewRequest("GET", "/user", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+// ============================================================================
+// ROUTE GROUP BENCHMARKS
+// ============================================================================
+
+func BenchmarkMarten_RouteGroup(b *testing.B) {
+	app := marten.New()
+	api := app.Group("/api/v1")
+	api.GET("/users/:id", func(c *marten.Ctx) error {
+		return c.JSON(200, marten.M{"id": c.Param("id")})
+	})
+
+	req := httptest.NewRequest("GET", "/api/v1/users/123", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkGin_RouteGroup(b *testing.B) {
+	app := gin.New()
+	api := app.Group("/api/v1")
+	api.GET("/users/:id", func(c *gin.Context) {
+		c.JSON(200, gin.H{"id": c.Param("id")})
+	})
+
+	req := httptest.NewRequest("GET", "/api/v1/users/123", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkEcho_RouteGroup(b *testing.B) {
+	app := echo.New()
+	api := app.Group("/api/v1")
+	api.GET("/users/:id", func(c echo.Context) error {
+		return c.JSON(200, map[string]string{"id": c.Param("id")})
+	})
+
+	req := httptest.NewRequest("GET", "/api/v1/users/123", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+// ============================================================================
+// WILDCARD ROUTE BENCHMARKS
+// ============================================================================
+
+func BenchmarkMarten_WildcardRoute(b *testing.B) {
+	app := marten.New()
+	app.GET("/files/*filepath", func(c *marten.Ctx) error {
+		return c.Text(200, c.Param("filepath"))
+	})
+
+	req := httptest.NewRequest("GET", "/files/documents/report.pdf", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkGin_WildcardRoute(b *testing.B) {
+	app := gin.New()
+	app.GET("/files/*filepath", func(c *gin.Context) {
+		c.String(200, c.Param("filepath"))
+	})
+
+	req := httptest.NewRequest("GET", "/files/documents/report.pdf", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+func BenchmarkEcho_WildcardRoute(b *testing.B) {
+	app := echo.New()
+	app.GET("/files/*", func(c echo.Context) error {
+		return c.String(200, c.Param("*"))
+	})
+
+	req := httptest.NewRequest("GET", "/files/documents/report.pdf", nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+	}
+}
+
+// ============================================================================
+// PARALLEL BENCHMARKS
+// ============================================================================
+
+func BenchmarkMarten_StaticRoute_Parallel(b *testing.B) {
+	app := marten.New()
+	app.GET("/hello", func(c *marten.Ctx) error {
+		return c.Text(200, "Hello, World!")
+	})
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			req := httptest.NewRequest("GET", "/hello", nil)
+			w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
+		}
+	})
+}
+
+func BenchmarkGin_StaticRoute_Parallel(b *testing.B) {
+	app := gin.New()
+	app.GET("/hello", func(c *gin.Context) {
+		c.String(200, "Hello, World!")
+	})
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			req := httptest.NewRequest("GET", "/hello", nil)
+			w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
+		}
+	})
+}
+
+func BenchmarkEcho_StaticRoute_Parallel(b *testing.B) {
+	app := echo.New()
+	app.GET("/hello", func(c echo.Context) error {
+		return c.String(200, "Hello, World!")
+	})
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			req := httptest.NewRequest("GET", "/hello", nil)
+			w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
+		}
+	})
+}

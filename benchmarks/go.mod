@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/gofiber/fiber/v2 v2.52.0
-	github.com/gomarten/marten v0.1.1
+	github.com/gomarten/marten v0.1.3
 	github.com/labstack/echo/v4 v4.11.4
 )
 

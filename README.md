@@ -178,13 +178,17 @@ app.RunGraceful(":8080", 10*time.Second)
 
 ## Benchmarks
 
-Marten performs on par with Gin and Echo while maintaining zero dependencies.
+Marten performs competitively with Gin and Echo while maintaining zero dependencies.
 
 | Benchmark | Marten | Gin | Echo | Chi |
 |-----------|--------|-----|------|-----|
-| Static Route | 1464 ns/op | 1336 ns/op | 1436 ns/op | 2202 ns/op |
-| Param Route | 1564 ns/op | 1418 ns/op | 1472 ns/op | 2559 ns/op |
-| JSON Response | 1755 ns/op | 2050 ns/op | 1835 ns/op | 1868 ns/op |
+| Static Route | 1,445 ns/op | 1,323 ns/op | 1,421 ns/op | 2,208 ns/op |
+| Param Route | 1,536 ns/op | 1,419 ns/op | 1,474 ns/op | 2,520 ns/op |
+| JSON Response | 1,651 ns/op | 1,583 ns/op | 1,754 ns/op | 1,890 ns/op |
+| JSON Binding | 8,339 ns/op | 8,634 ns/op | 8,766 ns/op | 6,810 ns/op |
+| Multi-Param | 1,841 ns/op | 1,511 ns/op | 1,634 ns/op | 2,836 ns/op |
+
+*Tested on Intel Xeon Platinum 8259CL @ 2.50GHz, Go 1.24, Linux*
 
 See [benchmarks/](benchmarks/) for full comparison with Gin, Echo, Chi and Fiber.
 

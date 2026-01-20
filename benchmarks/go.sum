@@ -30,8 +30,8 @@ github.com/goccy/go-json v0.10.2/go.mod h1:6MelG93GURQebXPDq3khkgXZkazVtN9CRI+MG
 github.com/gofiber/fiber/v2 v2.52.0 h1:S+qXi7y+/Pgvqq4DrSmREGiFwtB7Bu6+QFLuIHYw/UE=
 github.com/gofiber/fiber/v2 v2.52.0/go.mod h1:KEOE+cXMhXG0zHc9d8+E38hoX+ZN7bhOtgeF2oT6jrQ=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
-github.com/gomarten/marten v0.1.1 h1:9vOz+OtvDt+UpObczmQ3za7+wCl9rQcmawt7g8yiuj4=
-github.com/gomarten/marten v0.1.1/go.mod h1:uXG7LJpqkJHoVb8sbJk1/WzILvLshtZudwRGUk+IZCM=
+github.com/gomarten/marten v0.1.3 h1:Juoj2I0xuVPZzZk4B2TNKp9QOEgON8xAWy77F6Lh3c4=
+github.com/gomarten/marten v0.1.3/go.mod h1:uXG7LJpqkJHoVb8sbJk1/WzILvLshtZudwRGUk+IZCM=
 github.com/google/go-cmp v0.5.5 h1:Khx7svrCpmxxtHBq5j2mp/xVjsi8hQMfNLvJFAlrGgU=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=

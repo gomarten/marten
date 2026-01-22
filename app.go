@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -78,7 +79,7 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if handler == nil {
 		if len(allowed) > 0 {
 			// Path exists but method not allowed
-			w.Header().Set("Allow", joinMethods(allowed))
+			w.Header().Set("Allow", strings.Join(allowed, ", "))
 			handler = func(c *Ctx) error {
 				return c.Text(http.StatusMethodNotAllowed, "Method Not Allowed")
 			}
@@ -100,21 +101,6 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := handler(c); err != nil {
 		a.onError(c, err)
 	}
-}
-
-// joinMethods joins method names with ", ".
-func joinMethods(methods []string) string {
-	if len(methods) == 0 {
-		return ""
-	}
-	if len(methods) == 1 {
-		return methods[0]
-	}
-	result := methods[0]
-	for _, m := range methods[1:] {
-		result += ", " + m
-	}
-	return result
 }
 
 // Run starts the server on the given address.

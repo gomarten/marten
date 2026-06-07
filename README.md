@@ -73,10 +73,10 @@ func main() {
 |---------|-------------|
 | Zero Dependencies | Built entirely on Go's standard library |
 | Fast Routing | Radix tree router with path parameters and wildcards |
-| Middleware | Chainable middleware with 14 built-in options |
+| Middleware | Chainable middleware with 15 built-in options |
 | Context Pooling | Efficient memory reuse for high throughput |
-| Response Helpers | `OK()`, `Created()`, `BadRequest()`, `NotFound()`, and more |
-| Typed Parameters | `ParamInt()`, `QueryInt()`, `QueryBool()` |
+| Response Helpers | `OK()`, `Created()`, `Accepted()`, `BadRequest()`, `NotFound()`, and more |
+| Typed Parameters | `ParamInt()`, `QueryInt()`, `QueryFloat64()`, `QueryBool()` |
 | Graceful Shutdown | Built-in support via `RunGraceful()` |
 
 ## Routing
@@ -121,6 +121,7 @@ app.Use(middleware.BodyLimit(1*middleware.MB))
 app.Use(middleware.ETag)             // ETag caching
 app.Use(middleware.NoCache)          // Cache prevention
 app.Use(middleware.Static("./public")) // Static file serving
+app.Use(middleware.Health("/health")) // Health check endpoint
 ```
 
 Route-specific middleware:
@@ -136,20 +137,25 @@ func handler(c *marten.Ctx) error {
     // Path and query parameters
     id := c.Param("id")
     page := c.QueryInt("page")
-    
+    price := c.QueryFloat64("price")  // float64 query param
+
     // Request data
     ip := c.ClientIP()
     token := c.Bearer()
-    
+
     // JSON binding
     var user User
     if err := c.Bind(&user); err != nil {
         return c.BadRequest("invalid JSON")
     }
-    
+
+    // Context store (typed getters)
+    score := c.GetFloat64("score")   // float64 store value
+
     // Responses
     return c.OK(data)              // 200
     return c.Created(data)         // 201
+    return c.Accepted(data)        // 202  ← async / queued jobs
     return c.NoContent()           // 204
     return c.BadRequest("error")   // 400
     return c.NotFound("not found") // 404
@@ -174,6 +180,11 @@ app.OnError(func(c *marten.Ctx, err error) {
 
 // Graceful shutdown
 app.RunGraceful(":8080", 10*time.Second)
+
+// Debug: list all registered routes (sorted)
+for _, r := range app.Routes() {
+    fmt.Printf("%s %s\n", r.Method, r.Path)
+}
 ```
 
 ## Benchmarks

@@ -3,6 +3,7 @@ package marten
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -117,10 +118,16 @@ func (r *Router) OPTIONS(path string, h Handler, mw ...Middleware) {
 	r.Handle(http.MethodOptions, path, h, mw...)
 }
 
-// Routes returns all registered routes for debugging.
+// Routes returns all registered routes for debugging, sorted by path then method.
 func (r *Router) Routes() []Route {
 	var routes []Route
 	r.collectRoutes(r.root, "", &routes)
+	sort.Slice(routes, func(i, j int) bool {
+		if routes[i].Path != routes[j].Path {
+			return routes[i].Path < routes[j].Path
+		}
+		return routes[i].Method < routes[j].Method
+	})
 	return routes
 }
 
@@ -133,7 +140,16 @@ type Route struct {
 func (r *Router) collectRoutes(n *node, path string, routes *[]Route) {
 	currentPath := path
 	if n.path != "" {
-		currentPath = path + "/" + n.path
+		if path == "" || path == "/" {
+			currentPath = "/" + n.path
+		} else {
+			currentPath = path + "/" + n.path
+		}
+	}
+
+	// Root node (no path segment) maps to "/".
+	if currentPath == "" {
+		currentPath = "/"
 	}
 
 	for method := range n.handlers {
@@ -250,36 +266,32 @@ func (r *Router) lookup(method string, path string, params map[string]string) (H
 	return nil, nil, nil
 }
 
-// lookupWithTrailingSlash tries to find a route, and if not found,
-// tries the alternate path (with or without trailing slash).
+// lookupWithTrailingSlash tries to find a route, applying trailing slash policy.
 // Returns: handler, middleware, allowed methods, redirect path (if should redirect)
 func (r *Router) lookupWithTrailingSlash(method string, path string, params map[string]string) (Handler, []Middleware, []string, string) {
 	hasTrailingSlash := len(path) > 1 && strings.HasSuffix(path, "/")
 
-	// In strict mode, trailing slash matters
+	// In strict mode, a path with a trailing slash never matches a route registered
+	// without one (splitPath normalises both the same way, so we just return not found).
 	if r.trailingSlash == TrailingSlashStrict && hasTrailingSlash {
-		// Path has trailing slash - only match if route was registered with trailing slash
-		// Since splitPath normalizes, we can't distinguish, so treat as not found
 		return nil, nil, nil, ""
 	}
 
-	// Lookup with normalized path
+	// Lookup with (normalised) path.
 	h, mw, allowed := r.lookup(method, path, params)
 
 	if h != nil {
-		// Found handler - check if we need to redirect
+		// Found a handler — redirect if configured and path had a trailing slash.
 		if r.trailingSlash == TrailingSlashRedirect && hasTrailingSlash {
-			normalizedPath := strings.TrimSuffix(path, "/")
-			return nil, nil, nil, normalizedPath
+			return nil, nil, nil, strings.TrimSuffix(path, "/")
 		}
 		return h, mw, allowed, ""
 	}
 
-	// If we have allowed methods, path exists
+	// Path exists but wrong method — apply redirect policy before returning 405.
 	if len(allowed) > 0 {
 		if r.trailingSlash == TrailingSlashRedirect && hasTrailingSlash {
-			normalizedPath := strings.TrimSuffix(path, "/")
-			return nil, nil, nil, normalizedPath
+			return nil, nil, nil, strings.TrimSuffix(path, "/")
 		}
 		return nil, nil, allowed, ""
 	}

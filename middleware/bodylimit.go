@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"io"
 	"net/http"
 
@@ -15,21 +16,35 @@ const (
 )
 
 // BodyLimit returns a middleware that limits request body size.
+// It checks Content-Length first (when available), then enforces the limit
+// during the actual read so chunked-encoded bodies are covered too.
+// When the limit is exceeded during a read, the handler receives a
+// *bodyTooLargeError from io.ReadAll / json.Decode; BodyLimit catches that
+// error on the way back out and responds with 413 before it reaches OnError.
 func BodyLimit(maxSize int64) marten.Middleware {
 	return func(next marten.Handler) marten.Handler {
 		return func(c *marten.Ctx) error {
-			// Check Content-Length if available (skip for chunked encoding where ContentLength = -1)
+			// Fast path: Content-Length is known and already over limit.
 			if c.Request.ContentLength > maxSize {
 				return c.JSON(http.StatusRequestEntityTooLarge, marten.E("request body too large"))
 			}
 
-			// Always wrap body to enforce limit during read (handles chunked encoding)
+			// Wrap body to enforce limit during streaming reads.
 			c.Request.Body = &limitedReader{
 				reader:  c.Request.Body,
 				maxSize: maxSize,
 			}
 
-			return next(c)
+			err := next(c)
+
+			// If the handler returned a bodyTooLargeError (from a read inside
+			// the handler) and the response hasn't been written yet, send 413.
+			var tooLarge *bodyTooLargeError
+			if errors.As(err, &tooLarge) && !c.Written() {
+				return c.JSON(http.StatusRequestEntityTooLarge, marten.E("request body too large"))
+			}
+
+			return err
 		}
 	}
 }

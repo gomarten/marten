@@ -2,6 +2,30 @@
 
 All notable changes to Marten.
 
+## [0.1.4] - 2026-06-07
+
+### Added
+
+- **`c.Accepted(v any) error`** — new 202 response helper for async/queued operations, completing the set alongside `OK()`, `Created()`, and `NoContent()`
+- **`c.QueryFloat64(name string) float64`** — typed float query parameter helper, consistent with existing `QueryInt`, `QueryInt64`, `QueryBool`
+- **`c.GetFloat64(key string) float64`** — typed float store getter, consistent with `GetInt`, `GetBool`, `GetString`
+- **`middleware.Health(path string)`** — zero-config health check endpoint middleware; responds `200 {"status":"ok"}` and passes all other requests through. Useful for load balancer probes without registering a route
+- **`middleware.HealthWithConfig(cfg HealthConfig)`** — configurable variant with custom path and response handler
+- **`marten.NewCtx(w, r)`** — public constructor for creating a bare `*Ctx`; useful in custom middleware that needs an isolated context
+
+### Fixed
+
+- **Timeout data race** — `Timeout()` and `TimeoutWithConfig()` had a data race when a slow handler wrote to the `ResponseWriter` concurrently with the timeout path writing the 504 response. Fixed with a `timeoutWriter` wrapper that uses atomic ops to make the handler goroutine's writes no-ops once the timeout fires. The middleware now also waits for the goroutine to exit before returning, preventing any concurrent access to the underlying `ResponseWriter`
+- **`Routes()` returned `""` for the root route** — the `"/"` route was reported as an empty string. Fixed in `collectRoutes`; root now correctly appears as `"/"`
+- **`Routes()` returned non-deterministic order** — method iteration over a map caused random ordering on repeated calls. Routes are now sorted by path, then method, for stable output
+- **`BodyLimit` — chunked body over limit returned 500 instead of 413** — when a handler called `io.ReadAll` on an over-limit body with no `Content-Length` (chunked encoding), the `bodyTooLargeError` propagated to `OnError` and produced a 500. `BodyLimit` now intercepts that error on the way out and responds 413 if the response has not yet been written
+
+### Improved
+
+- `collectRoutes` path building rewritten to handle root node correctly and avoid double-slash in nested paths
+- `Timeout`/`TimeoutWithConfig` share a single implementation (`Timeout` delegates to `TimeoutWithConfig`) — no duplicated logic
+- 30 new test cases (355+ total) covering the new features and fixed bugs, all passing with `-race`
+
 ## [0.1.3] - 2026-01-18
 
 ### Added

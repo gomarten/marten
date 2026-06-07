@@ -67,6 +67,12 @@ func (c *Ctx) QueryBool(name string) bool {
 	return v
 }
 
+// QueryFloat64 returns a query parameter as float64 (0 if invalid).
+func (c *Ctx) QueryFloat64(name string) float64 {
+	v, _ := strconv.ParseFloat(c.Query(name), 64)
+	return v
+}
+
 // QueryDefault returns a query parameter or default if empty.
 func (c *Ctx) QueryDefault(name, def string) string {
 	if v := c.Query(name); v != "" {
@@ -129,6 +135,11 @@ func (c *Ctx) OK(v any) error {
 // Created sends a 201 JSON response.
 func (c *Ctx) Created(v any) error {
 	return c.JSON(http.StatusCreated, v)
+}
+
+// Accepted sends a 202 JSON response (useful for async / queued operations).
+func (c *Ctx) Accepted(v any) error {
+	return c.JSON(http.StatusAccepted, v)
 }
 
 // NoContent sends a 204 response.
@@ -375,6 +386,14 @@ func (c *Ctx) GetBool(key string) bool {
 	return false
 }
 
+// GetFloat64 retrieves a float64 value from the request context.
+func (c *Ctx) GetFloat64(key string) float64 {
+	if v, ok := c.Get(key).(float64); ok {
+		return v
+	}
+	return 0
+}
+
 // Cookie returns a cookie value by name.
 func (c *Ctx) Cookie(name string) string {
 	cookie, err := c.Request.Cookie(name)
@@ -466,6 +485,26 @@ func (c *Ctx) QueryParams() url.Values {
 // SetParam sets a path parameter (used internally by router).
 func (c *Ctx) SetParam(key, value string) {
 	c.params[key] = value
+}
+
+// NewCtx creates a minimal Ctx backed by the given ResponseWriter and Request.
+// It is used internally by middleware that needs an isolated context to write
+// a response without touching an existing Ctx that may be in use on another goroutine.
+func NewCtx(w http.ResponseWriter, r *http.Request) *Ctx {
+	return &Ctx{
+		Writer:  w,
+		Request: r,
+		params:  make(map[string]string),
+		store:   make(map[string]any),
+	}
+}
+
+// ResetWritten clears the written flag and status code so the context can
+// write a new response. Used by timeout middleware after the handler goroutine
+// exits with its writes suppressed, to allow the timeout response to be sent.
+func (c *Ctx) ResetWritten() {
+	c.written = false
+	c.statusCode = 0
 }
 
 // Reset clears the context for reuse.
